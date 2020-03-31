@@ -13,10 +13,10 @@
 # input args are defined inside the Jenkinsfile, not here!
 #
 
-ARG tag=1.10.0-py3
+ARG tag=1.12.0-py36
 
 # Base image, e.g. tensorflow/tensorflow:1.12.0-py3
-FROM tensorflow/tensorflow:${tag}
+FROM deephdc/tensorflow:${tag}
 
 LABEL maintainer='A.Grupp, V.Kozlov (KIT)'
 LABEL version='0.1.0'
@@ -29,10 +29,10 @@ ARG tag
 ARG pyVer=python3
 
 # What user branch to clone [!]
-ARG branch=master
+ARG branch=api_v2
 
 # If to install JupyterLab
-ARG jlab=false
+ARG jlab=true
 
 # Install ubuntu updates and python related stuff
 # link python3 to python, pip3 to pip, if needed
@@ -88,7 +88,7 @@ RUN curl -sS  http://get.onedata.org/oneclient-1902.sh | bash && \
 # Install DEEPaaS from PyPi
 # Install FLAAT (FLAsk support for handling Access Tokens)
 RUN pip install --no-cache-dir \
-        'deepaas==0.5.1' \
+        'deepaas>=1.0.1' \
         flaat && \
     rm -rf /root/.cache/pip/* && \
     rm -rf /tmp/*
@@ -138,7 +138,7 @@ RUN export TF_VERSION=$(echo ${tag} | cut -d\. -f1,2) && \
 # Install user app
 # Patch tf_cnn_benchmarks, if necessary:
 # 1.10 - correct eval_results to show accuracy, add loss in "extras"
-RUN git clone -b $branch https://github.com/deephdc/benchmarks_cnn_api && \
+RUN git clone -b $branch https://github.com/silkedh/benchmarks_cnn_api && \
     cd  benchmarks_cnn_api && \
     pip install --no-cache-dir -e . && \
     rm -rf /root/.cache/pip/* && \
@@ -159,5 +159,5 @@ EXPOSE 5000
 # Open Monitoring and Jupyter port
 EXPOSE 6006 8888
 
-# Account for OpenWisk functionality (deepaas >=0.4.0) + proper docker stop
+# Account for OpenWisk functionality
 CMD ["deepaas-run", "--openwhisk-detect", "--listen-ip", "0.0.0.0", "--listen-port", "5000"]
